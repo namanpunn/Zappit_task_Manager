@@ -8,14 +8,14 @@ import { BarLoader } from "react-spinners";
 import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
 import useFetch from "@/hooks/use-fetch";
 
-import statuses from "@/data/status";
+import statuses from "@/data/status.json";
 import { getIssuesForSprint, updateIssueOrder } from "@/actions/issues";
 
 import SprintManager from "./sprint-manager";
 import IssueCreationDrawer from "./create-issue";
 import IssueCard from "@/components/issue-card";
 import BoardFilters from "./board-filters";
-
+import { IssueStatus, IssuePriority } from "@prisma/client";
 // Define Sprint type
 type Sprint = {
   id: string;
@@ -26,15 +26,21 @@ type Sprint = {
 };
 
 // Define Issue type
-type Issue = {
+interface Issue {
+  projectId: string;
   id: string;
-  status: string;
-  order: number;
   title: string;
-  priority: string;
+  description: string | null;
+  status: IssueStatus;
+  order: number;
+  priority: IssuePriority;
+  assigneeId: string | null; // Use assigneeId instead of assignee
+  reporterId: string;
+  sprintId: string | null;
   createdAt: Date;
-  assignee: string | null; // Or appropriate type
-};
+  updatedAt: Date;
+  // Remove or adjust 'assignee' field if needed
+}
 
 // Props for SprintBoard
 type SprintBoardProps = {
@@ -93,7 +99,7 @@ const SprintBoard: React.FC<SprintBoardProps> = ({ sprints, projectId, orgId }) 
     fn: updateIssueOrderFn,
     loading: updateIssuesLoading,
     error: updateIssuesError,
-  } = useFetch<Issue[]>(updateIssueOrder);
+  } = useFetch<{ success: boolean }>(updateIssueOrder);
 
   const onDragEnd = async (result: DropResult) => {
     if (currentSprint.status === "PLANNED") {
@@ -115,7 +121,7 @@ const SprintBoard: React.FC<SprintBoardProps> = ({ sprints, projectId, orgId }) 
       return;
     }
 
-    const newOrderedData = [...issues];
+    const newOrderedData = [...(issues || [])];
 
     // Source and destination lists
     const sourceList = newOrderedData.filter(
@@ -141,7 +147,7 @@ const SprintBoard: React.FC<SprintBoardProps> = ({ sprints, projectId, orgId }) 
       const [movedCard] = sourceList.splice(source.index, 1);
 
       // Assign the new list ID to the moved card
-      movedCard.status = destination.droppableId;
+      movedCard.status = destination.droppableId as IssueStatus;
 
       // Add the card to the destination list
       destinationList.splice(destination.index, 0, movedCard);
@@ -156,7 +162,7 @@ const SprintBoard: React.FC<SprintBoardProps> = ({ sprints, projectId, orgId }) 
     }
 
     const sortedIssues = newOrderedData.sort((a, b) => a.order - b.order);
-    setIssues(newOrderedData, sortedIssues);
+    setIssues(newOrderedData);
 
     updateIssueOrderFn(sortedIssues);
   };

@@ -13,24 +13,17 @@ import { formatDistanceToNow } from "date-fns";
 import IssueDetailsDialog from "./issue-details-dialog";
 import UserAvatar from "./user-avatar";
 import { useRouter } from "next/navigation";
+import { Issue, User } from "@prisma/client";
 
 // Define the possible priority values
 type Priority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
-// Define the Issue type
-interface Issue {
-  id: string;
-  title: string;
-  status: string;
-  priority: Priority;
-  createdAt: string;
-  assignee: {
-    id: string;
-    name: string;
-    avatarUrl: string;
-  };
+// Extend the Issue type to include assignee
+interface ExtendedIssue extends Issue {
+  assignee?: User | null; // Assignee relation (nullable)
 }
 
+// Map priority to color
 const priorityColor: Record<Priority, string> = {
   LOW: "border-green-600",
   MEDIUM: "border-yellow-300",
@@ -39,7 +32,7 @@ const priorityColor: Record<Priority, string> = {
 };
 
 interface IssueCardProps {
-  issue: Issue;
+  issue: ExtendedIssue; // Use the extended issue type
   showStatus?: boolean;
   onDelete?: (issueId: string) => void;
   onUpdate?: (issueId: string) => void;
@@ -51,17 +44,23 @@ export default function IssueCard({
   onDelete = () => {},
   onUpdate = () => {},
 }: IssueCardProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const router = useRouter();
 
-  const onDeleteHandler = (issueId: string) => {
-    router.refresh();
+  // Safeguard: Ensure issue object exists and is valid
+  if (!issue) {
+    console.error("Invalid issue object provided to IssueCard.");
+    return null;
+  }
+
+  const handleDelete = (issueId: string) => {
     onDelete(issueId);
+    router.refresh();
   };
 
-  const onUpdateHandler = (issueId: string) => {
-    router.refresh();
+  const handleUpdate = (issueId: string) => {
     onUpdate(issueId);
+    router.refresh();
   };
 
   const created = formatDistanceToNow(new Date(issue.createdAt), {
@@ -86,10 +85,13 @@ export default function IssueCard({
             {issue.priority}
           </Badge>
         </CardContent>
-        <CardFooter className="flex flex-col items-start space-y-3">
-          <UserAvatar user={issue.assignee} />
 
-          <div className="text-xs text-gray-400 w-full">Created {created}</div>
+        <CardFooter className="flex flex-col items-start space-y-3">
+          {/* Ensure assignee exists before rendering */}
+          {/* {issue.assignee && <UserAvatar user={issue.assignee} />} */}
+          <div className="text-xs text-gray-400 w-full">
+            Created {created}
+          </div>
         </CardFooter>
       </Card>
 
@@ -98,8 +100,8 @@ export default function IssueCard({
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           issue={issue}
-          onDelete={onDeleteHandler}
-          onUpdate={onUpdateHandler}
+          onDelete={handleDelete}
+          onUpdate={handleUpdate}
           borderCol={priorityColor[issue.priority]}
         />
       )}

@@ -11,6 +11,7 @@ interface UserAvatarProps {
   user: User | null; // user could be null if not assigned
 }
 
+
 const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
   return (
     <div className="flex items-center space-x-2 w-full">

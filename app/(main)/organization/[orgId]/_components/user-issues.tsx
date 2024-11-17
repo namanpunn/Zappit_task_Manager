@@ -1,30 +1,34 @@
 import { Suspense } from "react";
-import { getUserIssues } from "@/actions/organizations";
+import { getUserIssues } from "@/actions/organizations"; // Assume this includes related data
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import IssueCard from "@/components/issue-card";
+import { Issue, User } from "@prisma/client";
 
-interface Issue {
-  id: string;
-  assignee: { clerkUserId: string };
-  reporter: { clerkUserId: string };
-}
+// Define the extended Issue type with relations
+type IssueWithRelations = Issue & {
+  assignee?: User | null; // Include related user data for assignee
+  reporter?: User | null; // Include related user data for reporter
+};
 
+// Define types for the component props
 interface UserIssuesProps {
-  userId: string;
+  userId: string; // Assuming userId is a string
 }
 
 export default async function UserIssues({ userId }: UserIssuesProps) {
-  const issues: Issue[] = await getUserIssues(userId);
+  // Fetch issues with related data
+  const issues: IssueWithRelations[] = await getUserIssues(userId);
 
   if (issues.length === 0) {
     return null;
   }
 
+  // Filter issues assigned to and reported by the user
   const assignedIssues = issues.filter(
-    (issue) => issue.assignee.clerkUserId === userId
+    (issue) => issue.assignee?.id === userId
   );
   const reportedIssues = issues.filter(
-    (issue) => issue.reporter.clerkUserId === userId
+    (issue) => issue.reporter?.id === userId
   );
 
   return (
@@ -51,8 +55,9 @@ export default async function UserIssues({ userId }: UserIssuesProps) {
   );
 }
 
+// Define types for the IssueGrid props
 interface IssueGridProps {
-  issues: Issue[];
+  issues: IssueWithRelations[];
 }
 
 function IssueGrid({ issues }: IssueGridProps) {

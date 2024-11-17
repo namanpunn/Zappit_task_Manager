@@ -92,7 +92,7 @@ const Home: React.FC = () => {
       <section className="container mx-auto py-20 text-center">
         <h1 className="text-6xl sm:text-7xl lg:text-8xl font-extrabold gradient-title pb-6 flex flex-col">
           Streamline Your Workflow <br />
-          <span className="flex mx-auto gap-3 sm:gap-4 items-center">
+          <div className="flex mx-auto gap-3 sm:gap-4 items-center">
             with
             <div className="flex justify-center space-x-2">
               <div className="bg-[#707AAC] text-white text-xl md:text-3xl font-bold p-2 md:p-4 rounded-md">Z</div>
@@ -102,7 +102,7 @@ const Home: React.FC = () => {
               <div className="bg-[#707AAB] text-white text-xl md:text-3xl font-bold p-2 md:p-4 rounded-md">I</div>
               <div className="bg-[#707AAB] text-white text-xl md:text-3xl font-bold p-2 md:p-4 rounded-md">T</div>
             </div>
-          </span>
+          </div>
         </h1>
         <p className="text-xl text-gray-300 mb-10 max-w-3xl mx-auto">
           Empower your team with our intuitive project management solution.

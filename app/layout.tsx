@@ -42,7 +42,7 @@ export default function RootLayout({
         <body className={`${inter.className} dotted-background`}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme=""
             enableSystem
             disableTransitionOnChange
           >

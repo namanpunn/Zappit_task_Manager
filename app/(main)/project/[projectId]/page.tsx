@@ -12,7 +12,7 @@ interface ProjectPageProps {
 interface Project {
   name: string;
   key: string;
-  sprints: Sprint[];
+  sprints: Sprint[]; // Make sure the Sprint type includes all required properties
   organizationId: string;
 }
 
@@ -20,6 +20,11 @@ export interface Sprint {
   id: string;
   name: string;
   status: "PLANNED" | "ACTIVE" | "COMPLETED";
+  startDate: Date;
+  endDate: Date;
+  projectId: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
@@ -30,18 +35,28 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     notFound();
   }
 
+  // Ensure the sprints have the necessary properties
+  const formattedSprints = project.sprints.map((sprint) => ({
+    ...sprint,
+    startDate: sprint.startDate || new Date(),  // Fallback if missing
+    endDate: sprint.endDate || new Date(),      // Fallback if missing
+    projectId: sprint.projectId || projectId,   // Ensure projectId is set
+    createdAt: sprint.createdAt || new Date(),
+    updatedAt: sprint.updatedAt || new Date(),
+  }));
+
   return (
     <div className="container mx-auto">
       <SprintCreationForm
-  projectTitle={project.name}
-  projectId={projectId}
-  projectKey={project.key}
-  sprintKey={(project.sprints?.length + 1).toString()}
-/>
+        projectTitle={project.name}
+        projectId={projectId}
+        projectKey={project.key}
+        sprintKey={(project.sprints?.length + 1).toString()}
+      />
 
-      {project.sprints.length > 0 ? (
+      {formattedSprints.length > 0 ? (
         <SprintBoard
-          sprints={project.sprints}
+          sprints={formattedSprints}
           projectId={projectId}
           orgId={project.organizationId}
         />

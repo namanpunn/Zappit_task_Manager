@@ -14,16 +14,20 @@ import { BarLoader } from "react-spinners";
 import { formatDistanceToNow, isAfter, isBefore, format } from "date-fns";
 
 import useFetch from "@/hooks/use-fetch";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { updateSprintStatus } from "@/actions/sprints";
 
+// Define types for the sprint and props
 type Sprint = {
   id: string;
   name: string;
-  startDate: string;
-  endDate: string;
-  status: "PLANNED" | "ACTIVE" | "COMPLETED";
+  startDate: Date;
+  endDate: Date;
+  status: "PLANNED" | "ACTIVE" | "COMPLETED"; // Sprint statuses
+  projectId: string;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 type SprintManagerProps = {
@@ -144,7 +148,7 @@ export default function SprintManager({
       </div>
       {loading && <BarLoader width={"100%"} className="mt-2" color="#36d7b7" />}
       {getStatusText() && (
-        <Badge className="mt-3 ml-1 self-start">
+        <Badge variant="default" className="mt-3 ml-1 self-start">
           {getStatusText()}
         </Badge>
       )}

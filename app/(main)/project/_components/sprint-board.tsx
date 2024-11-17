@@ -15,32 +15,36 @@ import SprintManager from "./sprint-manager";
 import IssueCreationDrawer from "./create-issue";
 import IssueCard from "@/components/issue-card";
 import BoardFilters from "./board-filters";
-import { IssueStatus, IssuePriority } from "@prisma/client";
+import { IssueStatus, IssuePriority, Sprint } from "@prisma/client";
+import { Issue } from "@prisma/client";
+
+
+
 // Define Sprint type
-type Sprint = {
-  id: string;
-  status: "PLANNED" | "ACTIVE" | "COMPLETED";
-  name: string;
-  startDate?: string; // Optional if not always present
-  endDate?: string;   // Optional if not always present
-};
+// type Sprint = {
+//   id: string;
+//   status: "PLANNED" | "ACTIVE" | "COMPLETED";
+//   name: string;
+//   startDate?: string; 
+//   endDate?: string;   
+// };
 
 // Define Issue type
-interface Issue {
-  projectId: string;
-  id: string;
-  title: string;
-  description: string | null;
-  status: IssueStatus;
-  order: number;
-  priority: IssuePriority;
-  assigneeId: string | null; // Use assigneeId instead of assignee
-  reporterId: string;
-  sprintId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  // Remove or adjust 'assignee' field if needed
-}
+// interface Issue {
+//   projectId: string;
+//   id: string;
+//   title: string;
+//   description: string | null;
+//   status: IssueStatus;
+//   order: number;
+//   priority: IssuePriority;
+//   assigneeId: string | null; // Use assigneeId instead of assignee
+//   reporterId: string;
+//   sprintId: string | null;
+//   createdAt: Date;
+//   updatedAt: Date;
+//   // Remove or adjust 'assignee' field if needed
+// }
 
 // Props for SprintBoard
 type SprintBoardProps = {
@@ -57,6 +61,10 @@ function reorder(list: Issue[], startIndex: number, endIndex: number): Issue[] {
 
   return result;
 }
+
+const handleFilterChange = (filteredIssues: Issue[]) => {
+  console.log(filteredIssues);
+};
 
 const SprintBoard: React.FC<SprintBoardProps> = ({ sprints, projectId, orgId }) => {
   const [currentSprint, setCurrentSprint] = useState<Sprint>(
@@ -172,15 +180,16 @@ const SprintBoard: React.FC<SprintBoardProps> = ({ sprints, projectId, orgId }) 
   return (
     <div className="flex flex-col">
       <SprintManager
-        sprint={currentSprint}
-        setSprint={setCurrentSprint}
+        sprint={currentSprint} // Use lowercase 'sprint'
+        setSprint={(sprint) => setCurrentSprint(sprint)}
         sprints={sprints}
         projectId={projectId}
       />
 
-      {issues && !issuesLoading && (
+
+      {/* {issues && !issuesLoading && (
         <BoardFilters issues={issues} onFilterChange={handleFilterChange} />
-      )}
+      )} */}
 
       {updateIssuesError && (
         <p className="text-red-500 mt-2">{updateIssuesError.message}</p>
@@ -218,13 +227,15 @@ const SprintBoard: React.FC<SprintBoardProps> = ({ sprints, projectId, orgId }) 
                             <IssueCard
                               issue={issue}
                               onDelete={() => fetchIssues(currentSprint.id)}
-                              onUpdate={(updated) =>
-                                setIssues((issues) =>
-                                  issues.map((issue) =>
-                                    issue.id === updated.id ? updated : issue
-                                  )
-                                )
-                              }
+                              onUpdate={(issueId: string) => {
+
+                                const updatedIssue = issues?.find((issue) => issue.id === issueId);
+                                if (updatedIssue) {
+                                  setIssues((issues) =>
+                                    issues?.map((issue) => (issue.id === updatedIssue.id ? updatedIssue : issue))
+                                  );
+                                }
+                              }}
                             />
                           </div>
                         )}
@@ -253,7 +264,7 @@ const SprintBoard: React.FC<SprintBoardProps> = ({ sprints, projectId, orgId }) 
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         sprintId={currentSprint.id}
-        status={selectedStatus}
+        status={selectedStatus || ""} // Provide an empty string if selectedStatus is null
         projectId={projectId}
         onIssueCreated={handleIssueCreated}
         orgId={orgId}
